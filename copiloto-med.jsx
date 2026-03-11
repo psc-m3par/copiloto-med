@@ -498,15 +498,14 @@ const OnboardingModal = ({onComplete, onSkip}) => {
   const [step, setStep] = useState(1);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(null);
+  const [docExtracting, setDocExtracting] = useState(false);
+  const [docExtracted, setDocExtracted] = useState(false);
   const [form, setForm] = useState({
-    name:"", birthDate:"", sex:"", photo:null, photoPreview:null,
-    cpf:"", bloodType:"", weight:"", height:"",
-    continuousMeds:[], allergies:"", chronicConditions:"",
-    doctorName:"", doctorClinic:"",
+    name:"", birthDate:"", sex:"", cpf:"", bloodType:"", weight:"", height:"",
+    continuousMeds:"", allergies:"", chronicConditions:"",
+    doctorName:"", doctorPhone:"", doctorClinic:"",
   });
   const [errors, setErrors] = useState({});
-  const [documents, setDocuments] = useState([]);
-  const [uploadingDoc, setUploadingDoc] = useState(false);
   const up = (k,v) => { setForm(p=>({...p,[k]:v})); setErrors(p=>({...p,[k]:undefined})); };
   const calcAge = (bd) => {
     if(!bd) return "";
@@ -528,38 +527,24 @@ const OnboardingModal = ({onComplete, onSkip}) => {
     if(v<30) return "Sobrepeso";
     return "Obesidade";
   };
-  const formatCPF = (v) => {
-    const d = v.replace(/\D/g,"").slice(0,11);
-    if(d.length<=3) return d;
-    if(d.length<=6) return d.slice(0,3)+"."+d.slice(3);
-    if(d.length<=9) return d.slice(0,3)+"."+d.slice(3,6)+"."+d.slice(6);
-    return d.slice(0,3)+"."+d.slice(3,6)+"."+d.slice(6,9)+"-"+d.slice(9);
-  };
-  const addMed = () => up("continuousMeds",[...form.continuousMeds,{name:"",dosage:"",frequency:""}]);
-  const removeMed = (i) => up("continuousMeds",form.continuousMeds.filter((_,idx)=>idx!==i));
-  const updateMed = (i,f,v) => up("continuousMeds",form.continuousMeds.map((m,idx)=>idx===i?{...m,[f]:v}:m));
-  const validate2 = () => {
-    const e={};
-    if(!form.name.trim()) e.name="Nome e obrigatorio";
-    if(!form.birthDate) e.birthDate="Data de nascimento e obrigatoria";
-    if(Object.keys(e).length){setErrors(e);return false}
-    return true;
-  };
-  const validate3 = () => {
-    const rawCPF = form.cpf.replace(/\D/g,"");
-    if(rawCPF && rawCPF.length!==11){setErrors({cpf:"CPF deve ter 11 digitos"});return false}
-    return true;
-  };
-  const handlePhoto = e => {
-    const f=e.target.files[0];
-    if(f){const r=new FileReader();r.onload=ev=>up("photoPreview",ev.target.result);r.readAsDataURL(f);up("photo",f);}
-  };
-  const handleDocUpload = e => {
-    const files=Array.from(e.target.files);setUploadingDoc(true);
+  const handleDocExtract = (e) => {
+    if(!e.target.files[0]) return;
+    setDocExtracting(true);
     setTimeout(()=>{
-      const nd=files.map(f=>({id:Date.now()+Math.random(),name:f.name,type:f.type.includes("pdf")?"PDF":f.type.includes("image")?"Imagem":"Documento",size:(f.size/1024).toFixed(1)+"KB"}));
-      setDocuments(p=>[...p,...nd]);setUploadingDoc(false);
-    },800);
+      setForm(p=>({...p,
+        name:"Pedro", birthDate:"2003-07-03", sex:"Masculino", cpf:"199.262.427-58",
+        allergies:"Dipirona, Penicilina",
+        chronicConditions:"Hipertensão arterial leve",
+        continuousMeds:"Losartana 50mg — 1x ao dia",
+      }));
+      setErrors({});
+      setDocExtracting(false);
+      setDocExtracted(true);
+    }, 1800);
+  };
+  const validate2 = () => {
+    if(!docExtracted){setErrors({doc:"Envie um documento para continuar"});return false}
+    return true;
   };
   const iStyle = f => ({...baseInput,borderColor:errors[f]?C.err:C.border});
   const bmi = calcBMI(form.weight, form.height);
@@ -610,35 +595,33 @@ const OnboardingModal = ({onComplete, onSkip}) => {
           <div>
             <div style={{textAlign:"center",marginBottom:20}}>
               <h2 style={{fontSize:20,fontWeight:800,color:C.text,margin:"0 0 6px"}}>Seus dados basicos</h2>
+              <p style={{fontSize:13,color:C.textSec,margin:0}}>Envie um documento para preenchermos seus dados automaticamente</p>
             </div>
-            <label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Foto (opcional)</label>
-            <div style={{border:`2px dashed ${C.border}`,borderRadius:12,padding:16,textAlign:"center",marginBottom:14,cursor:"pointer",background:C.bg}} onClick={()=>document.getElementById("onb-photo").click()}>
-              {form.photoPreview?<div style={{position:"relative",display:"inline-block"}}><img src={form.photoPreview} style={{maxHeight:120,borderRadius:8,objectFit:"cover"}} alt=""/><button onClick={e=>{e.stopPropagation();up("photoPreview",null);up("photo",null)}} style={{position:"absolute",top:-6,right:-6,width:22,height:22,borderRadius:"50%",background:C.err,color:"#fff",border:"none",cursor:"pointer",fontSize:13,fontWeight:700}}>x</button></div>:<><I n="camera" s={28} c={C.textMuted}/><p style={{fontSize:12,color:C.textMuted,margin:"6px 0 0"}}>Clique para adicionar foto</p></>}
-              <input id="onb-photo" type="file" accept="image/*" onChange={handlePhoto} style={{display:"none"}}/>
-            </div>
-            <div style={{marginBottom:14}}>
-              <label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Nome completo *</label>
-              <input value={form.name} onChange={e=>up("name",e.target.value)} placeholder="Ex: Maria Silva" style={iStyle("name")}/>
-              {errors.name&&<p style={{color:C.err,fontSize:11,margin:"4px 0 0"}}>{errors.name}</p>}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
-              <div>
-                <label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Data de nascimento *</label>
-                <input type="date" value={form.birthDate} onChange={e=>up("birthDate",e.target.value)} style={iStyle("birthDate")}/>
-                {form.birthDate&&<p style={{fontSize:10,color:C.textMuted,margin:"3px 0 0"}}>Idade: {calcAge(form.birthDate)} anos</p>}
-                {errors.birthDate&&<p style={{color:C.err,fontSize:11,margin:"4px 0 0"}}>{errors.birthDate}</p>}
+            <label htmlFor="onb-doc-id" style={{display:"block",cursor:"pointer",marginBottom:4}}>
+              <div style={{border:`2px dashed ${docExtracted?C.ok:errors.doc?C.err:C.border}`,borderRadius:14,padding:"28px 20px",textAlign:"center",background:docExtracted?"#F0FDF4":C.bg,transition:"all .3s"}}>
+                {docExtracting?(
+                  <><div style={{width:36,height:36,border:`3px solid ${C.border}`,borderTopColor:C.pri,borderRadius:"50%",animation:"spin 1s linear infinite",margin:"0 auto 10px"}}/><p style={{fontSize:13,fontWeight:600,color:C.text,margin:0}}>Lendo documento...</p><p style={{fontSize:11,color:C.textMuted,margin:"4px 0 0"}}>Extraindo seus dados</p></>
+                ):docExtracted?(
+                  <><div style={{width:44,height:44,borderRadius:"50%",background:"#DCFCE7",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 10px"}}><I n="check" s={22} c={C.ok}/></div><p style={{fontSize:13,fontWeight:700,color:C.ok,margin:0}}>Documento lido com sucesso!</p><p style={{fontSize:11,color:C.textMuted,margin:"4px 0 0"}}>Clique para trocar o documento</p></>
+                ):(
+                  <><div style={{width:52,height:52,borderRadius:14,background:C.priGhost,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}><I n="file" s={26} c={C.pri}/></div><p style={{fontSize:14,fontWeight:700,color:C.text,margin:"0 0 4px"}}>Enviar documento</p><p style={{fontSize:12,color:C.textMuted,margin:0}}>RG, CNH ou Passaporte</p><p style={{fontSize:10,color:C.textMuted,margin:"6px 0 0"}}>PDF ou imagem</p></>
+                )}
               </div>
-              <div>
-                <label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Sexo</label>
-                <select value={form.sex} onChange={e=>up("sex",e.target.value)} style={{...baseInput,appearance:"auto"}}>
-                  <option value="">Selecione</option>
-                  <option value="Masculino">Masculino</option>
-                  <option value="Feminino">Feminino</option>
-                  <option value="Outro">Outro</option>
-                </select>
+            </label>
+            <input id="onb-doc-id" type="file" accept=".pdf,image/*" onChange={handleDocExtract} style={{display:"none"}}/>
+            {errors.doc&&<p style={{color:C.err,fontSize:11,margin:"4px 0 12px"}}>{errors.doc}</p>}
+            {docExtracted&&(
+              <div style={{background:"#fff",borderRadius:12,border:`1.5px solid ${C.border}`,padding:16,margin:"12px 0 16px"}}>
+                <p style={{fontSize:11,fontWeight:700,color:C.textMuted,margin:"0 0 10px",textTransform:"uppercase",letterSpacing:".5px"}}>Dados extraidos</p>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <div><span style={{fontSize:11,color:C.textMuted}}>Nome</span><p style={{fontSize:13,fontWeight:700,color:C.text,margin:"2px 0 0"}}>{form.name}</p></div>
+                  <div><span style={{fontSize:11,color:C.textMuted}}>Idade</span><p style={{fontSize:13,fontWeight:700,color:C.text,margin:"2px 0 0"}}>{calcAge(form.birthDate)} anos</p></div>
+                  <div><span style={{fontSize:11,color:C.textMuted}}>CPF</span><p style={{fontSize:13,fontWeight:700,color:C.text,margin:"2px 0 0"}}>{form.cpf}</p></div>
+                  <div><span style={{fontSize:11,color:C.textMuted}}>Sexo</span><p style={{fontSize:13,fontWeight:700,color:C.text,margin:"2px 0 0"}}>{form.sex}</p></div>
+                </div>
               </div>
-            </div>
-            <div style={{display:"flex",gap:10}}>
+            )}
+            <div style={{display:"flex",gap:10,marginTop:docExtracted?0:16}}>
               <button onClick={()=>setStep(1)} style={{flex:1,padding:"12px",border:`1.5px solid ${C.border}`,borderRadius:10,background:"#fff",color:C.text,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:FONT}}>Voltar</button>
               <button onClick={()=>{if(validate2())setStep(3)}} style={{flex:2,padding:"12px",border:"none",borderRadius:10,background:C.pri,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:FONT}}>Continuar</button>
             </div>
@@ -650,45 +633,41 @@ const OnboardingModal = ({onComplete, onSkip}) => {
               <h2 style={{fontSize:20,fontWeight:800,color:C.text,margin:"0 0 6px"}}>Informacoes complementares</h2>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
-              <div><label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>CPF</label><input value={form.cpf} onChange={e=>up("cpf",formatCPF(e.target.value))} placeholder="000.000.000-00" style={iStyle("cpf")}/>{errors.cpf&&<p style={{color:C.err,fontSize:11,margin:"4px 0 0"}}>{errors.cpf}</p>}</div>
               <div><label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Tipo Sanguineo</label><select value={form.bloodType} onChange={e=>up("bloodType",e.target.value)} style={{...baseInput,appearance:"auto"}}><option value="">Selecione</option>{BLOOD_TYPES.map(b=><option key={b}>{b}</option>)}</select></div>
+              <div><label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Peso (kg)</label><input type="number" step="0.1" min="0" value={form.weight} onChange={e=>up("weight",e.target.value)} placeholder="Ex: 68" style={baseInput}/></div>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:8}}>
-              <div><label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Peso (kg)</label><input type="number" step="0.1" min="0" value={form.weight} onChange={e=>up("weight",e.target.value)} placeholder="Ex: 68" style={baseInput}/></div>
-              <div><label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Altura (cm)</label><input type="number" min="0" value={form.height} onChange={e=>up("height",e.target.value)} placeholder="Ex: 165" style={baseInput}/></div>
+              <div><label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Altura (cm)</label><input type="number" min="0" value={form.height} onChange={e=>up("height",e.target.value)} placeholder="Ex: 175" style={baseInput}/></div>
+              {bmi&&<div style={{display:"flex",alignItems:"flex-end",paddingBottom:2}}><div style={{padding:"8px 12px",background:C.priLight,borderRadius:8,border:`1px solid ${C.pri}30`,fontSize:11,color:C.pri,fontWeight:600,width:"100%"}}>IMC: <strong>{bmi}</strong> — {bmiCategory(bmi)}</div></div>}
             </div>
-            {bmi&&<div style={{margin:"0 0 12px",padding:"8px 12px",background:C.priLight,borderRadius:8,border:`1px solid ${C.pri}30`,fontSize:11,color:C.pri,fontWeight:600}}>IMC: <strong>{bmi}</strong> - {bmiCategory(bmi)}</div>}
-            <div style={{marginBottom:12,padding:14,background:C.priGhost,borderRadius:12,border:`1.5px solid ${C.border}`}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><I n="pill" s={16} c={C.pri}/><span style={{fontSize:12,fontWeight:800,color:C.text}}>Medicacao continua</span></div>
-              {form.continuousMeds.map((med,i)=>(
-                <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr auto",gap:8,marginBottom:8,alignItems:"end"}}>
-                  <input value={med.name} onChange={e=>updateMed(i,"name",e.target.value)} placeholder="Medicamento" style={{...baseInput,fontSize:12,padding:"8px 10px"}}/>
-                  <input value={med.dosage} onChange={e=>updateMed(i,"dosage",e.target.value)} placeholder="Dosagem" style={{...baseInput,fontSize:12,padding:"8px 10px"}}/>
-                  <input value={med.frequency} onChange={e=>updateMed(i,"frequency",e.target.value)} placeholder="1x/dia" style={{...baseInput,fontSize:12,padding:"8px 10px"}}/>
-                  <button onClick={()=>removeMed(i)} style={{background:C.errBg,border:`1px solid ${C.err}25`,borderRadius:8,width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0}}><I n="x" s={14} c={C.err}/></button>
-                </div>
-              ))}
-              <button onClick={addMed} style={{width:"100%",padding:"8px",border:`1.5px dashed ${C.pri}40`,borderRadius:8,background:"transparent",cursor:"pointer",fontSize:12,fontWeight:600,color:C.pri,fontFamily:FONT,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><I n="plus" s={14} c={C.pri}/>Adicionar medicamento</button>
+            <div style={{marginBottom:12}}>
+              <label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Medicacao continua</label>
+              <textarea value={form.continuousMeds} onChange={e=>up("continuousMeds",e.target.value)} placeholder="Ex: Losartana 50mg — 1x ao dia" rows={3} style={{...baseInput,resize:"vertical",minHeight:70,lineHeight:1.5}}/>
             </div>
             <div style={{marginBottom:12}}><label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Alergias e restricoes</label><textarea value={form.allergies} onChange={e=>up("allergies",e.target.value)} placeholder="Ex: Dipirona, Penicilina..." rows={2} style={{...baseInput,resize:"vertical",minHeight:60,lineHeight:1.5}}/></div>
-            <div style={{marginBottom:12}}><label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Condicoes cronicas</label><textarea value={form.chronicConditions} onChange={e=>up("chronicConditions",e.target.value)} placeholder="Ex: Diabetes tipo 2, Hipertensao..." rows={2} style={{...baseInput,resize:"vertical",minHeight:60,lineHeight:1.5}}/></div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
-              <div><label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Medico de referencia</label><input value={form.doctorName} onChange={e=>up("doctorName",e.target.value)} placeholder="Nome do medico" style={baseInput}/></div>
-              <div><label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Hospital / Clinica</label><input value={form.doctorClinic} onChange={e=>up("doctorClinic",e.target.value)} placeholder="Local ou telefone" style={baseInput}/></div>
-            </div>
-            <div style={{background:C.priGhost,borderRadius:12,padding:14,marginBottom:14,border:`1.5px dashed ${C.pri}`}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><I n="file" s={16} c={C.pri}/><span style={{fontSize:12,fontWeight:800,color:C.pri}}>DOCUMENTOS MEDICOS</span></div>
-              <label htmlFor="onb-docs" style={{display:"block",cursor:"pointer"}}>
-                <div style={{border:`2px dashed ${C.border}`,borderRadius:10,padding:"12px",textAlign:"center",background:"#fff"}}>
-                  {uploadingDoc?<><div style={{width:24,height:24,border:`3px solid ${C.border}`,borderTopColor:C.pri,borderRadius:"50%",animation:"spin 1s linear infinite",margin:"0 auto 6px"}}/><p style={{fontSize:11,margin:0,fontWeight:600}}>Processando...</p></>:<><I n="clip" s={22} c={C.pri}/><p style={{fontSize:12,fontWeight:600,color:C.text,margin:"4px 0 2px"}}>Clique para adicionar</p><p style={{fontSize:10,color:C.textMuted,margin:0}}>PDF ou imagens</p></>}
+            <div style={{marginBottom:18}}><label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Condicoes cronicas</label><textarea value={form.chronicConditions} onChange={e=>up("chronicConditions",e.target.value)} placeholder="Ex: Diabetes tipo 2, Hipertensao..." rows={2} style={{...baseInput,resize:"vertical",minHeight:60,lineHeight:1.5}}/></div>
+            <div style={{borderTop:`1.5px dashed ${C.border}`,paddingTop:14,marginBottom:14}}>
+              <p style={{fontSize:11,fontWeight:700,color:C.textMuted,margin:"0 0 12px",textTransform:"uppercase",letterSpacing:".5px"}}>Opcional</p>
+              <div style={{marginBottom:12}}>
+                <label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Medico de referencia</label>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  <input value={form.doctorName} onChange={e=>up("doctorName",e.target.value)} placeholder="Nome do medico" style={baseInput}/>
+                  <input value={form.doctorPhone} onChange={e=>up("doctorPhone",e.target.value)} placeholder="Telefone" style={baseInput}/>
                 </div>
-              </label>
-              <input id="onb-docs" type="file" multiple accept=".pdf,image/*,.doc,.docx" onChange={handleDocUpload} style={{display:"none"}}/>
-              {documents.length>0&&<div style={{marginTop:8}}>{documents.map(doc=>(<div key={doc.id} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"#fff",borderRadius:7,marginBottom:5,border:`1px solid ${C.border}`}}><I n="file" s={14} c={C.pri}/><div style={{flex:1,minWidth:0}}><div style={{fontSize:11,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{doc.name}</div><div style={{fontSize:9,color:C.textMuted}}>{doc.type} - {doc.size}</div></div><button onClick={()=>setDocuments(p=>p.filter(d=>d.id!==doc.id))} style={{background:"none",border:"none",cursor:"pointer",padding:2,color:C.textMuted,fontSize:16,fontWeight:700}}>x</button></div>))}</div>}
+              </div>
+              <div>
+                <label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>Hospital / Clinica</label>
+                <select value={form.doctorClinic} onChange={e=>up("doctorClinic",e.target.value)} style={{...baseInput,appearance:"auto"}}>
+                  <option value="">Selecione</option>
+                  <option>Copa Star</option>
+                  <option>Barra D'Or</option>
+                  <option>Outro</option>
+                </select>
+              </div>
             </div>
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setStep(2)} style={{flex:1,padding:"12px",border:`1.5px solid ${C.border}`,borderRadius:10,background:"#fff",color:C.text,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:FONT}}>Voltar</button>
-              <button onClick={()=>{if(validate3())setStep(4)}} style={{flex:2,padding:"12px",border:"none",borderRadius:10,background:C.pri,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:FONT}}>Continuar</button>
+              <button onClick={()=>setStep(4)} style={{flex:2,padding:"12px",border:"none",borderRadius:10,background:C.pri,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:FONT}}>Continuar</button>
             </div>
           </div>
         )}
@@ -699,17 +678,19 @@ const OnboardingModal = ({onComplete, onSkip}) => {
             <p style={{fontSize:13,color:C.textSec,margin:"0 0 20px"}}>Confira suas informacoes cadastradas</p>
             <div style={{background:C.bg,borderRadius:14,border:`2px solid ${C.border}`,padding:20,marginBottom:20,textAlign:"left"}}>
               <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:16,paddingBottom:14,borderBottom:`1px solid ${C.border}`}}>
-                {form.photoPreview?<img src={form.photoPreview} style={{width:60,height:60,borderRadius:12,objectFit:"cover"}} alt=""/>:<div style={{width:60,height:60,borderRadius:12,background:C.priGhost,display:"flex",alignItems:"center",justifyContent:"center"}}><I n="user" s={28} c={C.pri}/></div>}
+                <div style={{width:60,height:60,borderRadius:12,background:C.priGhost,display:"flex",alignItems:"center",justifyContent:"center"}}><I n="user" s={28} c={C.pri}/></div>
                 <div><div style={{fontSize:16,fontWeight:800,color:C.text}}>{form.name}</div><div style={{fontSize:12,color:C.textSec,marginTop:2}}>{form.birthDate&&calcAge(form.birthDate)+" anos"}{form.sex&&" - "+form.sex}</div></div>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:7,fontSize:12}}>
                 {form.bloodType&&<div style={{display:"flex",justifyContent:"space-between"}}><span style={{color:C.textSec}}>Tipo Sanguineo</span><span style={{fontWeight:700,color:C.err}}>{form.bloodType}</span></div>}
                 {form.weight&&form.height&&<div style={{display:"flex",justifyContent:"space-between"}}><span style={{color:C.textSec}}>Peso / Altura / IMC</span><span style={{fontWeight:600,color:C.text}}>{form.weight}kg / {form.height}cm / {bmi}</span></div>}
+                {form.continuousMeds&&<div style={{paddingTop:6,borderTop:`1px solid ${C.borderLight}`}}><span style={{color:C.textSec,display:"block",marginBottom:3}}>Medicacao continua:</span><span style={{fontWeight:500,color:C.text}}>{form.continuousMeds}</span></div>}
                 {form.chronicConditions&&<div style={{paddingTop:6,borderTop:`1px solid ${C.borderLight}`}}><span style={{color:C.textSec,display:"block",marginBottom:3}}>Condicoes cronicas:</span><span style={{fontWeight:500,color:C.text}}>{form.chronicConditions}</span></div>}
                 {form.allergies&&<div><span style={{color:C.textSec,display:"block",marginBottom:3}}>Alergias:</span><span style={{fontWeight:500,color:C.text}}>{form.allergies}</span></div>}
+                {form.doctorClinic&&<div style={{paddingTop:6,borderTop:`1px solid ${C.borderLight}`}}><span style={{color:C.textSec,display:"block",marginBottom:3}}>Clinica:</span><span style={{fontWeight:500,color:C.text}}>{form.doctorClinic}</span></div>}
               </div>
             </div>
-            <button onClick={()=>onComplete({name:form.name,birthDate:form.birthDate,age:calcAge(form.birthDate),sex:form.sex||"Nao informado",cpf:form.cpf||"",bloodType:form.bloodType||"",weight:form.weight||"",height:form.height||"",bmi:bmi||"",continuousMeds:form.continuousMeds,allergies:form.allergies||"",chronicConditions:form.chronicConditions||"",photo:form.photoPreview,doctorName:form.doctorName||"",doctorClinic:form.doctorClinic||"",documents})}
+            <button onClick={()=>onComplete({name:form.name,birthDate:form.birthDate,age:calcAge(form.birthDate),sex:form.sex||"Nao informado",cpf:form.cpf||"",bloodType:form.bloodType||"",weight:form.weight||"",height:form.height||"",bmi:bmi||"",continuousMeds:form.continuousMeds,allergies:form.allergies||"",chronicConditions:form.chronicConditions||"",photo:null,doctorName:form.doctorName||"",doctorPhone:form.doctorPhone||"",doctorClinic:form.doctorClinic||"",documents:[]})}
               style={{width:"100%",padding:"14px",border:"none",borderRadius:12,background:C.pri,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:FONT,marginBottom:10}}>
               Ir para o chat
             </button>
