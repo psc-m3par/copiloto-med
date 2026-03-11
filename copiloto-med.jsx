@@ -87,7 +87,7 @@ const PDF_REFERENCES = {
 
 const CHAT_RESPONSES = {
   default: {
-    text: `Olá! Sou o MedCopilot, seu assistente para organizar seu histórico de saúde.\n\nPosso ajudar com:\n• Consultar seu histórico de consultas e exames\n• Verificar vacinas e medicações em dia\n• Gerar um resumo clínico completo\n\n⚠️ Lembre-se: não substituo a consulta com um médico.\n\nComo posso ajudar?`,
+    text: `Olá! Sou o Copiloto Med, seu assistente para organizar seu histórico de saúde.\n\nPosso ajudar com:\n• Consultar seu histórico de consultas e exames\n• Verificar vacinas e medicações em dia\n• Gerar um resumo clínico completo\n\n⚠️ Lembre-se: não substituo a consulta com um médico.\n\nComo posso ajudar?`,
     refs: []
   },
   consulta: {
@@ -148,11 +148,11 @@ const SUMMARY_HIGHLIGHTS = {
   "Hospital São Lucas": "Consulta 20/01/2026",
 };
 
-const MOCK_TERMS_USE = `TERMOS DE USO — MEDCOPILOT\n\n1. Aceitação dos Termos\nAo utilizar o MedCopilot, você concorda com estes Termos de Uso. O serviço é oferecido como ferramenta auxiliar de organização e consulta de informações relacionadas à saúde pessoal.\n\n2. Natureza do Serviço\nO MedCopilot NÃO é um serviço de diagnóstico médico. As informações fornecidas são de caráter informativo e organizacional, e não substituem a consulta presencial com um médico habilitado.\n\n3. Responsabilidade do Usuário\nO paciente é responsável pela veracidade das informações inseridas na plataforma e por buscar atendimento médico profissional sempre que necessário.\n\n4. Propriedade Intelectual\nTodo o conteúdo, design e funcionalidades do MedCopilot são propriedade da empresa desenvolvedora.\n\n5. Modificações\nReservamo-nos o direito de modificar estes termos a qualquer momento, com notificação prévia.`;
+const MOCK_TERMS_USE = `TERMOS DE USO — COPILOTO MED\n\n1. Aceitação dos Termos\nAo utilizar o Copiloto Med, você concorda com estes Termos de Uso. O serviço é oferecido como ferramenta auxiliar de organização e consulta de informações relacionadas à saúde pessoal.\n\n2. Natureza do Serviço\nO Copiloto Med NÃO é um serviço de diagnóstico médico. As informações fornecidas são de caráter informativo e organizacional, e não substituem a consulta presencial com um médico habilitado.\n\n3. Responsabilidade do Usuário\nO paciente é responsável pela veracidade das informações inseridas na plataforma e por buscar atendimento médico profissional sempre que necessário.\n\n4. Propriedade Intelectual\nTodo o conteúdo, design e funcionalidades do Copiloto Med são propriedade da empresa desenvolvedora.\n\n5. Modificações\nReservamo-nos o direito de modificar estes termos a qualquer momento, com notificação prévia.`;
 
-const MOCK_TERMS_RESPONSIBILITY = `TERMOS DE RESPONSABILIDADE — MEDCOPILOT\n\n1. Limitação de Responsabilidade\nO MedCopilot é uma ferramenta de apoio e organização de dados clínicos pessoais. Não nos responsabilizamos por decisões médicas tomadas com base exclusiva nas informações exibidas na plataforma.\n\n2. Consulta Médica\nO uso do MedCopilot não substitui, em nenhuma hipótese, a avaliação presencial de um médico. Em caso de emergência, ligue imediatamente para o SAMU (192) ou dirija-se ao pronto-socorro mais próximo.\n\n3. Dados Clínicos\nOs resumos e interpretações gerados por inteligência artificial são aproximações baseadas nos documentos fornecidos. Podem conter imprecisões e devem ser validados por profissional habilitado.\n\n4. Armazenamento de Dados\nOs documentos e informações enviados são armazenados de forma segura, mas o usuário é responsável por manter cópias de segurança dos documentos originais.`;
+const MOCK_TERMS_RESPONSIBILITY = `TERMOS DE RESPONSABILIDADE — COPILOTO MED\n\n1. Limitação de Responsabilidade\nO Copiloto Med é uma ferramenta de apoio e organização de dados clínicos pessoais. Não nos responsabilizamos por decisões médicas tomadas com base exclusiva nas informações exibidas na plataforma.\n\n2. Consulta Médica\nO uso do Copiloto Med não substitui, em nenhuma hipótese, a avaliação presencial de um médico. Em caso de emergência, ligue imediatamente para o SAMU (192) ou dirija-se ao pronto-socorro mais próximo.\n\n3. Dados Clínicos\nOs resumos e interpretações gerados por inteligência artificial são aproximações baseadas nos documentos fornecidos. Podem conter imprecisões e devem ser validados por profissional habilitado.\n\n4. Armazenamento de Dados\nOs documentos e informações enviados são armazenados de forma segura, mas o usuário é responsável por manter cópias de segurança dos documentos originais.`;
 
-const MOCK_PRIVACY_POLICY = `POLÍTICA DE PRIVACIDADE — MEDCOPILOT\n\n1. Dados Coletados\nColetamos: email de cadastro, nome do paciente, dados de saúde (nome, data de nascimento, histórico clínico) e documentos médicos enviados pelo usuário.\n\n2. Uso dos Dados\nSeus dados são utilizados exclusivamente para:\n• Organizar e exibir informações clínicas pessoais\n• Gerar resumos clínicos por inteligência artificial\n• Melhorar a experiência do serviço\n\n3. Compartilhamento\nNão compartilhamos seus dados pessoais ou de saúde com terceiros, exceto quando exigido por lei.\n\n4. Segurança\nUtilizamos criptografia e boas práticas de segurança para proteger seus dados sensíveis de saúde.\n\n5. Seus Direitos\nVocê pode solicitar a exclusão dos seus dados a qualquer momento.\n\n6. Cookies\nUtilizamos cookies essenciais para o funcionamento da plataforma.`;
+const MOCK_PRIVACY_POLICY = `POLÍTICA DE PRIVACIDADE — COPILOTO MED\n\n1. Dados Coletados\nColetamos: email de cadastro, nome do paciente, dados de saúde (nome, data de nascimento, histórico clínico) e documentos médicos enviados pelo usuário.\n\n2. Uso dos Dados\nSeus dados são utilizados exclusivamente para:\n• Organizar e exibir informações clínicas pessoais\n• Gerar resumos clínicos por inteligência artificial\n• Melhorar a experiência do serviço\n\n3. Compartilhamento\nNão compartilhamos seus dados pessoais ou de saúde com terceiros, exceto quando exigido por lei.\n\n4. Segurança\nUtilizamos criptografia e boas práticas de segurança para proteger seus dados sensíveis de saúde.\n\n5. Seus Direitos\nVocê pode solicitar a exclusão dos seus dados a qualquer momento.\n\n6. Cookies\nUtilizamos cookies essenciais para o funcionamento da plataforma.`;
 
 // ─── COLORS ───
 const C = {
@@ -220,7 +220,7 @@ const I = ({n, s=18, c="currentColor", sw=1.8, ...p}) => {
 };
 
 // ─── LOGO ───
-const MedCopilotLogo = ({width=180, variant="color"}) => {
+const CopiloMedLogo = ({width=180, variant="color"}) => {
   const isDark = variant === "white";
   return (
     <div style={{display:"inline-flex",alignItems:"center",gap:0,fontFamily:FONT}}>
@@ -230,7 +230,7 @@ const MedCopilotLogo = ({width=180, variant="color"}) => {
   );
 };
 
-const MedCopilotLogoSmall = ({size=28, variant="color"}) => {
+const CopiloMedLogoSmall = ({size=28, variant="color"}) => {
   const color = variant==="white" ? "#93C5FD" : "#2563EB";
   return <span style={{fontSize:size*0.7,fontWeight:800,color,fontFamily:FONT,lineHeight:1}}>M</span>;
 };
@@ -291,7 +291,7 @@ const Btn = ({children, variant="primary", icon, onClick, style:s, disabled, ...
 const WelcomeScreen = ({onEnterEmail, onProfessional}) => (
   <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#F8FAFC",fontFamily:FONT}}>
     <div style={{textAlign:"center",maxWidth:380,padding:32}}>
-      <MedCopilotLogo width={260}/>
+      <CopiloMedLogo width={260}/>
       <p style={{color:C.textSec,fontSize:14,margin:"18px 0 44px",lineHeight:1.6}}>Seu assistente inteligente para saúde e histórico médico</p>
       <p style={{color:C.textMuted,fontSize:12,fontWeight:600,margin:"0 0 14px",letterSpacing:".5px",textTransform:"uppercase"}}>Como você deseja entrar?</p>
       <button onClick={onEnterEmail} style={{width:"100%",padding:"13px",border:"none",borderRadius:999,
@@ -326,7 +326,7 @@ const EmailScreen = ({onBack, onSendCode}) => {
       </div>
       <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
         <div style={{maxWidth:380,width:"100%",textAlign:"center"}}>
-          <MedCopilotLogo width={200}/>
+          <CopiloMedLogo width={200}/>
           <div style={{height:18}}/>
           <h2 style={{fontSize:22,fontWeight:700,color:C.text,margin:"0 0 4px"}}>Seu email</h2>
           <p style={{color:C.textSec,fontSize:13,margin:"0 0 28px"}}>Enviaremos um código de acesso</p>
@@ -420,8 +420,8 @@ const Sidebar = ({active, onNavigate, email, onLogout, collapsed, onToggle, onUp
   return (
     <div style={{width:collapsed?60:240,background:C.sidebar,display:"flex",flexDirection:"column",flexShrink:0,fontFamily:FONT,transition:"width .25s ease",overflow:"hidden"}}>
       <div style={{padding:collapsed?"16px 10px":"18px 18px 14px",display:"flex",alignItems:"center",justifyContent:collapsed?"center":"space-between",flexShrink:0}}>
-        {collapsed ? <button onClick={onToggle} style={{background:"none",border:"none",cursor:"pointer",padding:0}}><MedCopilotLogoSmall size={22} variant="white"/></button>
-        : <><MedCopilotLogo width={150} variant="white"/>
+        {collapsed ? <button onClick={onToggle} style={{background:"none",border:"none",cursor:"pointer",padding:0}}><CopiloMedLogoSmall size={22} variant="white"/></button>
+        : <><CopiloMedLogo width={150} variant="white"/>
           <button onClick={onToggle} style={{background:"none",border:"none",cursor:"pointer",padding:2}}><I n="chevL" s={16} c={C.textMuted}/></button>
         </>}
       </div>
@@ -572,9 +572,9 @@ const OnboardingModal = ({onComplete, onSkip}) => {
         {step===1&&(
           <div>
             <div style={{textAlign:"center",marginBottom:20}}>
-              <MedCopilotLogo width={180}/>
+              <CopiloMedLogo width={180}/>
               <h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:"14px 0 6px"}}>Antes de comecar</h2>
-              <p style={{color:C.textSec,fontSize:13,lineHeight:1.6,margin:0}}>Leia os pontos abaixo sobre o uso do MedCopilot.</p>
+              <p style={{color:C.textSec,fontSize:13,lineHeight:1.6,margin:0}}>Leia os pontos abaixo sobre o uso do Copiloto Med.</p>
             </div>
             <div style={{background:"#fff",borderRadius:12,padding:16,marginBottom:12,border:`2px solid ${C.pri}`}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
@@ -597,7 +597,7 @@ const OnboardingModal = ({onComplete, onSkip}) => {
             <div style={{background:C.warnBg,borderRadius:10,padding:"12px 14px",marginBottom:16,border:`1.5px solid ${C.warn}40`}}>
               <label style={{display:"flex",alignItems:"start",gap:10,cursor:"pointer"}}>
                 <input type="checkbox" checked={disclaimerAccepted} onChange={e=>setDisclaimerAccepted(e.target.checked)} style={{width:18,height:18,cursor:"pointer",accentColor:C.pri,marginTop:1,flexShrink:0}}/>
-                <span style={{fontSize:12,color:"#92400E",lineHeight:1.6}}>Declaro que li e compreendi que o <strong>MedCopilot nao substitui o Medico</strong> e concordo com os termos legais.</span>
+                <span style={{fontSize:12,color:"#92400E",lineHeight:1.6}}>Declaro que li e compreendi que o <strong>Copiloto Med nao substitui o Medico</strong> e concordo com os termos legais.</span>
               </label>
             </div>
             <button onClick={()=>setStep(2)} disabled={!disclaimerAccepted}
@@ -974,7 +974,7 @@ const ChatScreen = ({profiles, showOnboarding, onCompleteOnboarding, onSkipOnboa
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <ChatAvatar size={34}/>
             <div>
-              <span style={{fontSize:15,fontWeight:700,color:C.pri,display:"block"}}>MedCopilot</span>
+              <span style={{fontSize:15,fontWeight:700,color:C.pri,display:"block"}}>Copiloto Med</span>
               <span style={{fontSize:12,color:C.priDark}}>Online - Pronto para ajudar</span>
             </div>
             {activeConsultationId&&<span style={{fontSize:11,color:C.pri,background:C.priLight,padding:"3px 8px",borderRadius:6,marginLeft:6}}>Historico</span>}
@@ -1073,7 +1073,7 @@ const ChatScreen = ({profiles, showOnboarding, onCompleteOnboarding, onSkipOnboa
             </button>
           </div>
           <p style={{textAlign:"center",fontSize:10,color:C.textMuted,margin:"8px 0 0"}}>
-            O MedCopilot nao substitui o Medico. Em emergencias, ligue 192 (SAMU).
+            O Copiloto Med nao substitui o Medico. Em emergencias, ligue 192 (SAMU).
           </p>
         </div>
       </div>
@@ -1161,7 +1161,7 @@ const MeuHistoricoScreen = ({profiles, onAddProfile, onRemoveProfile}) => {
                     {getTabForIdx(idx)==="identification"&&(
                       <div style={{borderRadius:14,overflow:"hidden",maxWidth:520,margin:"0 auto 20px",boxShadow:"0 4px 20px rgba(0,0,0,.1)",border:`1px solid ${C.border}`}}>
                         <div style={{background:`linear-gradient(135deg, ${C.navy} 0%, #1E293B 100%)`,padding:"16px 22px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                          <div><MedCopilotLogo width={120} variant="white"/><div style={{fontSize:9,color:"#94A3B8",letterSpacing:1.5,marginTop:4}}>IDENTIFICACAO DO PACIENTE</div></div>
+                          <div><CopiloMedLogo width={120} variant="white"/><div style={{fontSize:9,color:"#94A3B8",letterSpacing:1.5,marginTop:4}}>IDENTIFICACAO DO PACIENTE</div></div>
                           <I n="shield" s={22} c={C.gold}/>
                         </div>
                         <div style={{height:3,background:`linear-gradient(90deg, ${C.pri}, #93C5FD, ${C.pri})`}}/>
@@ -1194,7 +1194,7 @@ const MeuHistoricoScreen = ({profiles, onAddProfile, onRemoveProfile}) => {
                     {getTabForIdx(idx)==="vaccination"&&(
                       <div style={{borderRadius:14,overflow:"hidden",maxWidth:520,margin:"0 auto 20px",boxShadow:"0 4px 20px rgba(0,0,0,.1)",border:`1px solid ${C.border}`}}>
                         <div style={{background:`linear-gradient(135deg, ${C.navy} 0%, #1E293B 100%)`,padding:"16px 22px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                          <div><MedCopilotLogo width={120} variant="white"/><div style={{fontSize:9,color:"#94A3B8",letterSpacing:1.5,marginTop:4}}>CADERNETA DE VACINACAO</div></div>
+                          <div><CopiloMedLogo width={120} variant="white"/><div style={{fontSize:9,color:"#94A3B8",letterSpacing:1.5,marginTop:4}}>CADERNETA DE VACINACAO</div></div>
                           <I n="syringe" s={20} c={C.gold}/>
                         </div>
                         <div style={{height:3,background:`linear-gradient(90deg, ${C.pri}, #93C5FD, ${C.pri})`}}/>
@@ -1250,7 +1250,7 @@ const MeuHistoricoScreen = ({profiles, onAddProfile, onRemoveProfile}) => {
                     {getTabForIdx(idx)==="exams"&&(
                       <div style={{borderRadius:14,overflow:"hidden",maxWidth:520,margin:"0 auto 20px",boxShadow:"0 4px 20px rgba(0,0,0,.1)",border:`1px solid ${C.border}`}}>
                         <div style={{background:`linear-gradient(135deg, ${C.navy} 0%, #1E293B 100%)`,padding:"16px 22px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                          <div><MedCopilotLogo width={120} variant="white"/><div style={{fontSize:9,color:"#94A3B8",letterSpacing:1.5,marginTop:4}}>HISTORICO DE EXAMES</div></div>
+                          <div><CopiloMedLogo width={120} variant="white"/><div style={{fontSize:9,color:"#94A3B8",letterSpacing:1.5,marginTop:4}}>HISTORICO DE EXAMES</div></div>
                           <I n="activity" s={20} c={C.gold}/>
                         </div>
                         <div style={{height:3,background:`linear-gradient(90deg, ${C.pri}, #93C5FD, ${C.pri})`}}/>
