@@ -235,22 +235,16 @@ const Btn = ({children, variant="primary", icon, onClick, style:s, disabled, ...
 };
 
 // ─── WELCOME ───
-const WelcomeScreen = ({onEnterEmail, onProfessional}) => (
+const WelcomeScreen = ({onEnterEmail}) => (
   <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#F8FAFC",fontFamily:FONT}}>
     <div style={{textAlign:"center",maxWidth:380,padding:32}}>
       <CopiloMedLogo width={260}/>
-      <p style={{color:C.textSec,fontSize:14,margin:"18px 0 44px",lineHeight:1.6}}>Seu assistente inteligente para saúde e histórico médico</p>
-      <p style={{color:C.textMuted,fontSize:12,fontWeight:600,margin:"0 0 14px",letterSpacing:".5px",textTransform:"uppercase"}}>Como você deseja entrar?</p>
-      <button onClick={onEnterEmail} style={{width:"100%",padding:"13px",border:"none",borderRadius:999,
+      <p style={{color:C.textSec,fontSize:14,margin:"18px 0 44px",lineHeight:1.6}}>Assistente clínico para profissionais de saúde</p>
+      <button onClick={onEnterEmail} style={{width:"100%",padding:"14px",border:"none",borderRadius:999,
         background:C.pri,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",
-        display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginBottom:10,fontFamily:FONT,
+        display:"flex",alignItems:"center",justifyContent:"center",gap:10,fontFamily:FONT,
         boxShadow:`0 4px 14px rgba(37,99,235,0.35)`,transition:"all .2s"}}>
-        <I n="heart" s={18} c="#fff"/>Sou paciente — entrar com email
-      </button>
-      <div style={{color:C.textMuted,fontSize:12,margin:"6px 0",fontWeight:500}}>ou</div>
-      <button onClick={onProfessional} style={{width:"100%",padding:"13px",border:`2px solid ${C.cream}`,borderRadius:999,
-        background:"#fff",color:C.text,fontSize:15,fontWeight:600,cursor:"pointer",fontFamily:FONT}}>
-        Sou Profissional de Saúde
+        <I n="heart" s={18} c="#fff"/>Entrar como Profissional de Saúde
       </button>
     </div>
   </div>
@@ -408,19 +402,6 @@ const Sidebar = ({active, onNavigate, email, onLogout, collapsed, onToggle, onUp
           </div>
         )}
       </div>
-      {!collapsed&&(
-        <div style={{padding:"8px 14px",display:"flex",alignItems:"center",gap:6,justifyContent:"center"}}>
-          <span style={{fontSize:9,fontWeight:700,color:"#9CA3AF",letterSpacing:".5px",textTransform:"uppercase",marginRight:4}}>Fonte</span>
-          {["P","M","G"].map(sz=>(
-            <button key={sz} onClick={()=>onFontSizeChange?.(sz)}
-              style={{width:28,height:28,borderRadius:8,border:fontSize===sz?"none":`1px solid #1E293B`,
-                background:fontSize===sz?C.pri:"transparent",color:fontSize===sz?"#fff":"#9CA3AF",
-                fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:FONT,display:"flex",alignItems:"center",justifyContent:"center"}}>
-              {sz}
-            </button>
-          ))}
-        </div>
-      )}
       <div style={{padding:collapsed?"12px 8px":"14px 14px",borderTop:"1px solid #1E293B",flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:collapsed?"center":"flex-start",gap:9}}>
           <div style={{width:30,height:30,borderRadius:8,background:`linear-gradient(135deg,${C.pri},#1D4ED8)`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:12,fontWeight:800,flexShrink:0}}>
@@ -1281,7 +1262,7 @@ export default function App() {
     }
   };
 
-  if(screen==="welcome") return <WelcomeScreen onEnterEmail={()=>setScreen("email")} onProfessional={()=>alert("Area do profissional de saude em desenvolvimento")}/>;
+  if(screen==="welcome") return <WelcomeScreen onEnterEmail={()=>setScreen("email")}/>;
   if(screen==="email") return <EmailScreen onBack={()=>setScreen("welcome")} onSendCode={e=>{setEmail(e);setScreen("code")}}/>;
   if(screen==="code") return <CodeScreen email={email} onBack={()=>setScreen("email")} onVerify={()=>setScreen("app")}/>;
 
