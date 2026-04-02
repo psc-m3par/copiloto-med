@@ -343,6 +343,7 @@ const Sidebar = ({active, onNavigate, email, onLogout, collapsed, onToggle, onUp
   const items = [
     {id:"chat",icon:"chat",label:"Copiloto"},
     {id:"historico",icon:"card",label:"Atendimentos"},
+    {id:"calculadoras",icon:"activity",label:"Calculadoras"},
   ];
   const navBtn = (it) => {
     const act = active===it.id;
@@ -1118,7 +1119,265 @@ const UploadModal = ({profiles, onClose, onConfirm}) => {
   );
 };
 
-// ─── RESUMO CLINICO (removed — integrated in Historico) ───
+// ─── CALCULADORAS MÉDICAS ───
+const CALCULATORS = [
+  {id:"qsofa",name:"qSOFA",desc:"Triagem rápida de sepse",icon:"activity",
+    fields:[
+      {key:"fr",label:"Freq. respiratória (irpm)",type:"number",placeholder:"Ex: 22"},
+      {key:"pas",label:"Pressão arterial sistólica (mmHg)",type:"number",placeholder:"Ex: 90"},
+      {key:"consciencia",label:"Alteração do nível de consciência",type:"toggle"},
+    ],
+    mock:{fr:"40",pas:"90",consciencia:true},
+    calc:(f)=>{let s=0;if(parseFloat(f.fr)>=22)s++;if(parseFloat(f.pas)<=100)s++;if(f.consciencia)s++;return s},
+    interpret:(s)=>s>=2
+      ?{score:s,max:3,level:"Alto risco",color:C.err,bg:C.errBg,text:`qSOFA: ${s} pontos — POSITIVO (≥2). Alto risco de evolução desfavorável (mortalidade hospitalar ≥10%).`,conduta:"Iniciar bundle de sepse imediatamente: coleta de culturas, início precoce de antibióticos, reposição volêmica, controle da fonte. Considerar admissão em UTI."}
+      :{score:s,max:3,level:"Baixo risco",color:C.ok,bg:C.okBg,text:`qSOFA: ${s} ponto(s) — NEGATIVO (<2). Baixo risco pelo qSOFA.`,conduta:"Manter vigilância clínica. Reavaliar se houver piora dos parâmetros. Considerar SOFA completo se suspeita clínica persistir."}
+  },
+  {id:"glasgow",name:"Glasgow (GCS)",desc:"Nível de consciência",icon:"user",
+    fields:[
+      {key:"ocular",label:"Abertura ocular",type:"select",options:[{v:4,l:"Espontânea (4)"},{v:3,l:"Ao estímulo verbal (3)"},{v:2,l:"Ao estímulo doloroso (2)"},{v:1,l:"Nenhuma (1)"}]},
+      {key:"verbal",label:"Resposta verbal",type:"select",options:[{v:5,l:"Orientada (5)"},{v:4,l:"Confusa (4)"},{v:3,l:"Palavras inapropriadas (3)"},{v:2,l:"Sons incompreensíveis (2)"},{v:1,l:"Nenhuma (1)"}]},
+      {key:"motora",label:"Resposta motora",type:"select",options:[{v:6,l:"Obedece comandos (6)"},{v:5,l:"Localiza dor (5)"},{v:4,l:"Retirada inespecífica (4)"},{v:3,l:"Flexão anormal (3)"},{v:2,l:"Extensão (2)"},{v:1,l:"Nenhuma (1)"}]},
+    ],
+    mock:{ocular:"2",verbal:"2",motora:"4"},
+    calc:(f)=>parseInt(f.ocular||0)+parseInt(f.verbal||0)+parseInt(f.motora||0),
+    interpret:(s)=>s>=13
+      ?{score:s,max:15,level:"Leve",color:C.ok,bg:C.okBg,text:`Glasgow: ${s}/15 — Trauma cranioencefálico leve.`,conduta:"Observação clínica. Reavaliar em intervalos regulares. Alta com orientações se estável."}
+      :s>=9
+      ?{score:s,max:15,level:"Moderado",color:C.warn,bg:C.warnBg,text:`Glasgow: ${s}/15 — Trauma cranioencefálico moderado.`,conduta:"Monitorização contínua. Solicitar TC de crânio. Avaliação neurocirúrgica se deterioração. Considerar internação."}
+      :{score:s,max:15,level:"Grave",color:C.err,bg:C.errBg,text:`Glasgow: ${s}/15 — Trauma cranioencefálico grave.`,conduta:"Intubação orotraqueal (IOT) indicada. TC de crânio urgente. Internação em UTI. Avaliação neurocirúrgica imediata."}
+  },
+  {id:"imc",name:"IMC",desc:"Índice de massa corporal",icon:"heart",
+    fields:[
+      {key:"peso",label:"Peso (kg)",type:"number",placeholder:"Ex: 92"},
+      {key:"altura",label:"Altura (cm)",type:"number",placeholder:"Ex: 175"},
+    ],
+    mock:{peso:"92",altura:"175"},
+    calc:(f)=>{const h=parseFloat(f.altura)/100;return h>0?parseFloat(f.peso)/(h*h):0},
+    interpret:(s)=>{const v=parseFloat(s.toFixed(1));return v<18.5
+      ?{score:v,max:null,level:"Abaixo do peso",color:C.warn,bg:C.warnBg,text:`IMC: ${v} — Abaixo do peso.`,conduta:"Investigar causa (nutricional, endócrina, psiquiátrica). Avaliação nutricional. Solicitar exames complementares conforme suspeita clínica."}
+      :v<25?{score:v,max:null,level:"Peso normal",color:C.ok,bg:C.okBg,text:`IMC: ${v} — Peso normal.`,conduta:"Manter hábitos saudáveis. Orientação sobre alimentação equilibrada e atividade física regular."}
+      :v<30?{score:v,max:null,level:"Sobrepeso",color:C.warn,bg:C.warnBg,text:`IMC: ${v} — Sobrepeso.`,conduta:"Orientação nutricional e de atividade física. Rastrear comorbidades: HAS, DM2, dislipidemia. Reavaliar em 3 meses."}
+      :{score:v,max:null,level:"Obesidade",color:C.err,bg:C.errBg,text:`IMC: ${v} — Obesidade${v>=35?" grau "+(v>=40?"III":"II"):""}.`,conduta:"Encaminhamento para nutricionista e/ou endocrinologista. Rastrear síndrome metabólica. Considerar avaliação multidisciplinar. Se IMC ≥40 ou ≥35 com comorbidades, avaliar indicação de cirurgia bariátrica."}
+    }
+  },
+  {id:"cha2ds2vasc",name:"CHA₂DS₂-VASc",desc:"Risco de AVC em FA",icon:"alert",
+    fields:[
+      {key:"ic",label:"Insuficiência cardíaca",type:"toggle"},
+      {key:"has",label:"Hipertensão",type:"toggle"},
+      {key:"idade75",label:"Idade ≥ 75 anos",type:"toggle"},
+      {key:"dm",label:"Diabetes",type:"toggle"},
+      {key:"avc",label:"AVC / AIT prévio",type:"toggle"},
+      {key:"vasc",label:"Doença vascular (IAM, DAP, placa aórtica)",type:"toggle"},
+      {key:"idade65",label:"Idade 65–74 anos",type:"toggle"},
+      {key:"sexof",label:"Sexo feminino",type:"toggle"},
+    ],
+    mock:{ic:false,has:true,idade75:false,dm:true,avc:false,vasc:false,idade65:true,sexof:true},
+    calc:(f)=>(f.ic?1:0)+(f.has?1:0)+(f.idade75?2:0)+(f.dm?1:0)+(f.avc?2:0)+(f.vasc?1:0)+(f.idade65?1:0)+(f.sexof?1:0),
+    interpret:(s)=>s===0
+      ?{score:s,max:9,level:"Baixo risco",color:C.ok,bg:C.okBg,text:`CHA₂DS₂-VASc: ${s} — Baixo risco.`,conduta:"Sem necessidade de anticoagulação. Reavaliar periodicamente fatores de risco."}
+      :s===1
+      ?{score:s,max:9,level:"Risco moderado",color:C.warn,bg:C.warnBg,text:`CHA₂DS₂-VASc: ${s} — Risco moderado.`,conduta:"Considerar anticoagulação oral (DOACs preferenciais). Avaliar risco de sangramento (HAS-BLED). Decisão compartilhada com o paciente."}
+      :{score:s,max:9,level:"Alto risco",color:C.err,bg:C.errBg,text:`CHA₂DS₂-VASc: ${s} — Alto risco de AVC.`,conduta:"Anticoagulação oral recomendada (DOACs preferenciais sobre varfarina). Avaliar HAS-BLED. Monitorizar função renal e hepática. Controlar fatores de risco modificáveis."}
+  },
+  {id:"clcr",name:"Clearance Creatinina",desc:"Cockcroft-Gault",icon:"flask",
+    fields:[
+      {key:"idade",label:"Idade (anos)",type:"number",placeholder:"Ex: 68"},
+      {key:"peso",label:"Peso (kg)",type:"number",placeholder:"Ex: 72"},
+      {key:"creatinina",label:"Creatinina sérica (mg/dL)",type:"number",placeholder:"Ex: 1.8"},
+      {key:"sexo",label:"Sexo",type:"select",options:[{v:"M",l:"Masculino"},{v:"F",l:"Feminino"}]},
+    ],
+    mock:{idade:"68",peso:"72",creatinina:"1.8",sexo:"M"},
+    calc:(f)=>{const v=((140-parseFloat(f.idade))*parseFloat(f.peso))/(72*parseFloat(f.creatinina));return f.sexo==="F"?v*0.85:v},
+    interpret:(s)=>{const v=parseFloat(s.toFixed(1));return v>90
+      ?{score:v,max:null,level:"Normal",color:C.ok,bg:C.okBg,text:`ClCr: ${v} mL/min — Função renal normal.`,conduta:"Sem ajuste de dose necessário para a maioria dos fármacos. Manter monitorização periódica se fatores de risco presentes."}
+      :v>=60?{score:v,max:null,level:"Redução leve",color:C.warn,bg:C.warnBg,text:`ClCr: ${v} mL/min — Redução leve da função renal (estágio 2).`,conduta:"Atenção ao ajuste de doses de fármacos nefrotóxicos. Monitorizar creatinina e eletrólitos. Controlar fatores de risco (HAS, DM)."}
+      :v>=30?{score:v,max:null,level:"Redução moderada",color:C.warn,bg:C.warnBg,text:`ClCr: ${v} mL/min — Redução moderada (estágio 3).`,conduta:"Ajuste de dose obrigatório para diversos fármacos. Encaminhamento para nefrologia. Evitar nefrotóxicos (AINEs, contraste iodado sem preparo). Rastrear complicações (anemia, distúrbio mineral-ósseo)."}
+      :v>=15?{score:v,max:null,level:"Redução severa",color:C.err,bg:C.errBg,text:`ClCr: ${v} mL/min — Redução severa (estágio 4).`,conduta:"Acompanhamento nefrológico obrigatório. Preparar para terapia renal substitutiva (diálise). Ajuste rigoroso de medicações. Restrição proteica e de potássio conforme indicação."}
+      :{score:v,max:null,level:"Falência renal",color:C.err,bg:C.errBg,text:`ClCr: ${v} mL/min — Falência renal (estágio 5).`,conduta:"Indicação de terapia renal substitutiva (hemodiálise, diálise peritoneal) ou avaliação para transplante renal. Manejo multidisciplinar urgente."}
+    }
+  },
+  {id:"curb65",name:"CURB-65",desc:"Gravidade de pneumonia",icon:"syringe",
+    fields:[
+      {key:"confusao",label:"Confusão mental",type:"toggle"},
+      {key:"ureia",label:"Ureia > 43 mg/dL (> 7 mmol/L)",type:"toggle"},
+      {key:"fr30",label:"Frequência respiratória ≥ 30 irpm",type:"toggle"},
+      {key:"pa",label:"PA sistólica < 90 ou diastólica ≤ 60 mmHg",type:"toggle"},
+      {key:"idade65",label:"Idade ≥ 65 anos",type:"toggle"},
+    ],
+    mock:{confusao:true,ureia:true,fr30:false,pa:false,idade65:true},
+    calc:(f)=>(f.confusao?1:0)+(f.ureia?1:0)+(f.fr30?1:0)+(f.pa?1:0)+(f.idade65?1:0),
+    interpret:(s)=>s<=1
+      ?{score:s,max:5,level:"Leve",color:C.ok,bg:C.okBg,text:`CURB-65: ${s} ponto(s) — Pneumonia leve.`,conduta:"Tratamento ambulatorial. Antibioticoterapia empírica oral (amoxicilina ou macrolídeo). Reavaliação em 48-72h. Orientar sinais de alerta."}
+      :s===2
+      ?{score:s,max:5,level:"Moderado",color:C.warn,bg:C.warnBg,text:`CURB-65: ${s} pontos — Pneumonia moderada.`,conduta:"Considerar internação hospitalar. Antibioticoterapia parenteral. Monitorizar oximetria e sinais vitais. Solicitar hemocultura e escarro."}
+      :{score:s,max:5,level:"Grave",color:C.err,bg:C.errBg,text:`CURB-65: ${s} pontos — Pneumonia grave.`,conduta:"Internação obrigatória. Considerar UTI se CURB-65 ≥4. Antibioticoterapia parenteral de amplo espectro. Suporte ventilatório se necessário. Coleta de culturas antes do antibiótico."}
+  },
+  {id:"wells",name:"Wells (TEP)",desc:"Probabilidade de TEP",icon:"shield",
+    fields:[
+      {key:"tvp",label:"Sinais/sintomas clínicos de TVP",type:"toggle"},
+      {key:"altdiag",label:"Diagnóstico alternativo menos provável que TEP",type:"toggle"},
+      {key:"fc100",label:"Frequência cardíaca > 100 bpm",type:"toggle"},
+      {key:"imob",label:"Imobilização >3 dias ou cirurgia <4 semanas",type:"toggle"},
+      {key:"previo",label:"TVP/TEP prévio",type:"toggle"},
+      {key:"hemoptise",label:"Hemoptise",type:"toggle"},
+      {key:"neo",label:"Neoplasia ativa (tratamento nos últimos 6 meses)",type:"toggle"},
+    ],
+    mock:{tvp:true,altdiag:true,fc100:true,imob:false,previo:false,hemoptise:false,neo:false},
+    calc:(f)=>(f.tvp?3:0)+(f.altdiag?3:0)+(f.fc100?1.5:0)+(f.imob?1.5:0)+(f.previo?1.5:0)+(f.hemoptise?1:0)+(f.neo?1:0),
+    interpret:(s)=>s<2
+      ?{score:s,max:12.5,level:"Baixa probabilidade",color:C.ok,bg:C.okBg,text:`Wells: ${s} ponto(s) — Baixa probabilidade de TEP.`,conduta:"Solicitar D-dímero. Se negativo, TEP excluído. Se positivo, prosseguir com angioTC de tórax. Considerar diagnósticos alternativos."}
+      :s<=6
+      ?{score:s,max:12.5,level:"Probabilidade moderada",color:C.warn,bg:C.warnBg,text:`Wells: ${s} pontos — Probabilidade moderada de TEP.`,conduta:"Solicitar D-dímero e/ou angioTC de tórax. Iniciar anticoagulação empírica se alta suspeita clínica enquanto aguarda exames. Monitorizar sinais vitais."}
+      :{score:s,max:12.5,level:"Alta probabilidade",color:C.err,bg:C.errBg,text:`Wells: ${s} pontos — Alta probabilidade de TEP.`,conduta:"AngioTC de tórax urgente. Iniciar anticoagulação imediatamente (heparina não fracionada ou HBPM). Se instabilidade hemodinâmica, considerar trombólise. Não aguardar D-dímero — prosseguir direto com imagem."}
+  },
+];
+
+const CalculadorasScreen = () => {
+  const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState({});
+  const [result, setResult] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const up = (k,v) => setForm(p=>({...p,[k]:v}));
+
+  const selectCalc = (calc) => {
+    const init = {};
+    calc.fields.forEach(f => { init[f.key] = f.type==="toggle" ? false : ""; });
+    setForm(init);
+    setResult(null);
+    setSelected(calc);
+  };
+
+  const calculate = () => {
+    const calc = selected;
+    const canCalc = calc.fields.every(f => f.type==="toggle" || form[f.key]);
+    if(!canCalc) return;
+    const raw = calc.calc(form);
+    setResult(calc.interpret(raw));
+  };
+
+  const handleUpload = (e) => {
+    if(!e.target.files[0] || !selected) return;
+    setUploading(true);
+    setTimeout(() => {
+      setForm(selected.mock);
+      setUploading(false);
+      setTimeout(() => {
+        const raw = selected.calc(selected.mock);
+        setResult(selected.interpret(raw));
+      }, 300);
+    }, 1500);
+  };
+
+  if(!selected) return (
+    <div style={{flex:1,display:"flex",flexDirection:"column",background:C.bg,fontFamily:FONT}}>
+      <div style={{padding:"13px 28px",borderBottom:`1px solid ${C.border}`,background:"#fff",display:"flex",alignItems:"center",gap:10}}>
+        <I n="activity" s={18} c={C.pri}/><span style={{fontSize:15,fontWeight:700,color:C.text}}>Calculadoras Médicas</span>
+      </div>
+      <div style={{flex:1,overflow:"auto",padding:28}}>
+        <div style={{maxWidth:600,margin:"0 auto"}}>
+          <p style={{fontSize:13,color:C.textSec,margin:"0 0 20px"}}>Selecione uma calculadora para começar. Preencha manualmente ou envie um documento para extração automática.</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            {CALCULATORS.map(calc=>(
+              <button key={calc.id} onClick={()=>selectCalc(calc)}
+                style={{padding:"18px 16px",background:"#fff",border:`1.5px solid ${C.border}`,borderRadius:14,cursor:"pointer",textAlign:"left",fontFamily:FONT,transition:"all .2s",display:"flex",gap:12,alignItems:"flex-start"}}>
+                <div style={{width:38,height:38,borderRadius:10,background:C.priGhost,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <I n={calc.icon} s={18} c={C.pri}/>
+                </div>
+                <div>
+                  <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:2}}>{calc.name}</div>
+                  <div style={{fontSize:11,color:C.textMuted,lineHeight:1.4}}>{calc.desc}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{flex:1,display:"flex",flexDirection:"column",background:C.bg,fontFamily:FONT}}>
+      <div style={{padding:"13px 28px",borderBottom:`1px solid ${C.border}`,background:"#fff",display:"flex",alignItems:"center",gap:14}}>
+        <button onClick={()=>{setSelected(null);setResult(null)}} style={{background:"none",border:"none",cursor:"pointer",padding:3,display:"flex"}}><I n="arrowL" s={18} c={C.textSec}/></button>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <div style={{width:30,height:30,borderRadius:8,background:C.priGhost,display:"flex",alignItems:"center",justifyContent:"center"}}><I n={selected.icon} s={15} c={C.pri}/></div>
+          <div><span style={{fontSize:15,fontWeight:700,color:C.text}}>{selected.name}</span><span style={{fontSize:11,color:C.textMuted,marginLeft:8}}>{selected.desc}</span></div>
+        </div>
+      </div>
+      <div style={{flex:1,overflow:"auto",padding:"20px 28px",display:"flex",justifyContent:"center"}}>
+        <div style={{maxWidth:500,width:"100%"}}>
+          {/* Upload area */}
+          <label htmlFor="calc-upload" style={{display:"block",cursor:"pointer",marginBottom:18}}>
+            <div style={{border:`2px dashed ${C.border}`,borderRadius:12,padding:"14px 18px",textAlign:"center",background:"#fff",display:"flex",alignItems:"center",justifyContent:"center",gap:10,transition:"all .2s"}}>
+              {uploading?(
+                <><div style={{width:20,height:20,border:`2px solid ${C.border}`,borderTopColor:C.pri,borderRadius:"50%",animation:"spin 1s linear infinite"}}/><span style={{fontSize:12,fontWeight:600,color:C.text}}>Analisando documento...</span></>
+              ):(
+                <><I n="file" s={18} c={C.pri}/><span style={{fontSize:12,fontWeight:600,color:C.pri}}>Enviar documento para preenchimento automático</span><span style={{fontSize:10,color:C.textMuted}}>(PDF, imagem)</span></>
+              )}
+            </div>
+          </label>
+          <input id="calc-upload" type="file" accept=".pdf,image/*" onChange={handleUpload} style={{display:"none"}}/>
+
+          {/* Manual fields */}
+          <div style={{background:"#fff",borderRadius:14,border:`1.5px solid ${C.border}`,padding:20,marginBottom:16}}>
+            <p style={{fontSize:11,fontWeight:700,color:C.textMuted,margin:"0 0 14px",textTransform:"uppercase",letterSpacing:".5px"}}>Parâmetros</p>
+            {selected.fields.map(f=>(
+              <div key={f.key} style={{marginBottom:14}}>
+                {f.type==="toggle"?(
+                  <label style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",padding:"8px 0"}}>
+                    <span style={{fontSize:13,fontWeight:500,color:C.text}}>{f.label}</span>
+                    <div onClick={()=>up(f.key,!form[f.key])}
+                      style={{width:44,height:24,borderRadius:12,background:form[f.key]?C.pri:C.border,padding:2,cursor:"pointer",transition:"all .2s",display:"flex",alignItems:"center"}}>
+                      <div style={{width:20,height:20,borderRadius:10,background:"#fff",boxShadow:"0 1px 3px rgba(0,0,0,.2)",transition:"all .2s",transform:form[f.key]?"translateX(20px)":"translateX(0)"}}/>
+                    </div>
+                  </label>
+                ):f.type==="select"?(
+                  <div>
+                    <label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>{f.label}</label>
+                    <select value={form[f.key]||""} onChange={e=>up(f.key,e.target.value)} style={{...baseInput,appearance:"auto"}}>
+                      <option value="">Selecione</option>
+                      {f.options.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
+                    </select>
+                  </div>
+                ):(
+                  <div>
+                    <label style={{fontSize:12,fontWeight:700,color:C.text,display:"block",marginBottom:5}}>{f.label}</label>
+                    <input type="number" step="any" value={form[f.key]||""} onChange={e=>up(f.key,e.target.value)} placeholder={f.placeholder||""} style={baseInput}/>
+                  </div>
+                )}
+              </div>
+            ))}
+            <button onClick={calculate}
+              style={{width:"100%",padding:"13px",border:"none",borderRadius:10,background:C.pri,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:FONT,marginTop:4,transition:"all .2s"}}>
+              Calcular
+            </button>
+          </div>
+
+          {/* Result */}
+          {result&&(
+            <div style={{background:result.bg,borderRadius:14,border:`2px solid ${result.color}30`,padding:20,marginBottom:20,animation:"toastIn .3s ease"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+                <div style={{width:36,height:36,borderRadius:10,background:"#fff",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 2px 8px ${result.color}20`}}>
+                  <I n={result.color===C.ok?"check":result.color===C.warn?"alert":"alert"} s={18} c={result.color}/>
+                </div>
+                <div>
+                  <div style={{fontSize:11,fontWeight:800,color:result.color,letterSpacing:".5px",textTransform:"uppercase"}}>{result.level}</div>
+                  {result.max&&<div style={{fontSize:10,color:C.textMuted}}>Score: {result.score} / {result.max}</div>}
+                </div>
+              </div>
+              <p style={{fontSize:13,color:C.text,lineHeight:1.6,margin:"0 0 14px",fontWeight:500}}>{result.text}</p>
+              <div style={{background:"#fff",borderRadius:10,padding:"12px 14px",border:`1px solid ${result.color}20`}}>
+                <div style={{fontSize:10,fontWeight:800,color:result.color,letterSpacing:".5px",marginBottom:6}}>CONDUTA SUGERIDA</div>
+                <p style={{fontSize:12,color:C.textSec,lineHeight:1.6,margin:0}}>{result.conduta}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ─── NOVO ATENDIMENTO ───
 const NovAtendimento = ({onComplete, onCancel}) => {
@@ -1317,6 +1576,8 @@ export default function App() {
           />
         ):activeNav==="historico"?(
           <MeuHistoricoScreen profiles={profiles} onAddProfile={()=>setRegistering(true)} onRemoveProfile={idx=>setProfiles(p=>p.filter((_,i)=>i!==idx))}/>
+        ):activeNav==="calculadoras"?(
+          <CalculadorasScreen/>
         ):null}
       </div>
     </div>
